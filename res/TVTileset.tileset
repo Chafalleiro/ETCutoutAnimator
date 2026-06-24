@@ -1,0 +1,47 @@
+{
+  "image" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+  "tiles" : [
+    {
+      "name" : "Static_0101",
+      "x" : 18,
+      "y" : 68,
+      "width" : 96,
+      "height" : 54
+    },
+    {
+      "name" : "Static_0102",
+      "x" : 18,
+      "y" : 132,
+      "width" : 96,
+      "height" : 54
+    },
+    {
+      "name" : "Static_0103",
+      "x" : 18,
+      "y" : 196,
+      "width" : 96,
+      "height" : 54
+    },
+    {
+      "name" : "TV_0101",
+      "x" : 14,
+      "y" : 264,
+      "width" : 100,
+      "height" : 61
+    },
+    {
+      "name" : "Base_02",
+      "x" : 32,
+      "y" : 348,
+      "width" : 32,
+      "height" : 11
+    },
+    {
+      "name" : "bARS",
+      "x" : 18,
+      "y" : 4,
+      "width" : 96,
+      "height" : 54
+    }
+  ]
+}

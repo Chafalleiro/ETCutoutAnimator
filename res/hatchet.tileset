@@ -1,0 +1,12 @@
+{
+  "image" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\hatchet.png",
+  "tiles" : [
+    {
+      "name" : "rust_iron",
+      "x" : 9,
+      "y" : 12,
+      "width" : 23,
+      "height" : 20
+    }
+  ]
+}

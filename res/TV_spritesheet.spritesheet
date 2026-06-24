@@ -1,0 +1,51 @@
+{
+  "cellW" : 100,
+  "cellH" : 72,
+  "columns" : 3,
+  "rows" : 4,
+  "sheetW" : 300,
+  "sheetH" : 244,
+  "image" : "TV_spritesheet.png",
+  "animations" : [
+    {
+      "name" : "TV STATIC",
+      "row" : 0,
+      "frameCount" : 3,
+      "frameW" : 100,
+      "frameH" : 72,
+      "speedMs" : 242,
+      "rowY" : 0,
+      "frameX" : 0
+    },
+    {
+      "name" : "TV OFF",
+      "row" : 1,
+      "frameCount" : 1,
+      "frameW" : 96,
+      "frameH" : 54,
+      "speedMs" : 100,
+      "rowY" : 72,
+      "frameX" : 0
+    },
+    {
+      "name" : "TV BARS",
+      "row" : 2,
+      "frameCount" : 1,
+      "frameW" : 96,
+      "frameH" : 54,
+      "speedMs" : 100,
+      "rowY" : 126,
+      "frameX" : 0
+    },
+    {
+      "name" : "Mannequin",
+      "row" : 3,
+      "frameCount" : 2,
+      "frameW" : 64,
+      "frameH" : 64,
+      "speedMs" : 100,
+      "rowY" : 180,
+      "frameX" : 0
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name" : "TV OFF",
+  "rowIndex" : 1,
+  "frameCount" : 1,
+  "frameW" : 96,
+  "frameH" : 54,
+  "speedMs" : 100,
+  "transform" : 0,
+  "preset" : "",
+  "frames" : [
+    {
+      "ordinal" : 0,
+      "layers" : [
+        {
+          "name" : "TV_0101",
+          "visible" : true,
+          "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+          "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+          "tileX" : 14,
+          "tileY" : 264,
+          "tileW" : 100,
+          "tileH" : 61,
+          "tileName" : "TV_0101",
+          "offsetX" : 0,
+          "offsetY" : 0,
+          "angle" : 0.0000000000000000E+000,
+          "zIndex" : 0,
+          "pivotX" : 0,
+          "pivotY" : 0,
+          "drawBehindParent" : false,
+          "flipH" : false,
+          "flipV" : false
+        }
+      ]
+    }
+  ]
+}

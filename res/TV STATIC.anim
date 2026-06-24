@@ -1,0 +1,213 @@
+{
+  "name" : "TV STATIC",
+  "rowIndex" : 0,
+  "frameCount" : 3,
+  "frameW" : 100,
+  "frameH" : 72,
+  "speedMs" : 242,
+  "transform" : 0,
+  "preset" : "",
+  "frames" : [
+    {
+      "ordinal" : 0,
+      "layers" : [
+        {
+          "name" : "TV_0101",
+          "visible" : true,
+          "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+          "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+          "tileX" : 14,
+          "tileY" : 264,
+          "tileW" : 100,
+          "tileH" : 61,
+          "tileName" : "TV_0101",
+          "offsetX" : 0,
+          "offsetY" : -5,
+          "angle" : 0.0000000000000000E+000,
+          "zIndex" : 0,
+          "pivotX" : 0,
+          "pivotY" : 0,
+          "drawBehindParent" : false,
+          "flipH" : false,
+          "flipV" : false,
+          "children" : [
+            {
+              "name" : "base_02",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+              "tileX" : 32,
+              "tileY" : 348,
+              "tileW" : 32,
+              "tileH" : 11,
+              "tileName" : "base_02",
+              "offsetX" : 0,
+              "offsetY" : 35,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 0,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : false,
+              "flipH" : false,
+              "flipV" : false
+            },
+            {
+              "name" : "Static_0101",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+              "tileX" : 18,
+              "tileY" : 68,
+              "tileW" : 96,
+              "tileH" : 54,
+              "tileName" : "Static_0101",
+              "offsetX" : 0,
+              "offsetY" : 0,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 1,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : false,
+              "flipH" : false,
+              "flipV" : false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ordinal" : 1,
+      "layers" : [
+        {
+          "name" : "TV_0101",
+          "visible" : true,
+          "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+          "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+          "tileX" : 14,
+          "tileY" : 264,
+          "tileW" : 100,
+          "tileH" : 61,
+          "tileName" : "TV_0101",
+          "offsetX" : 0,
+          "offsetY" : -5,
+          "angle" : 0.0000000000000000E+000,
+          "zIndex" : 0,
+          "pivotX" : 0,
+          "pivotY" : 0,
+          "drawBehindParent" : false,
+          "flipH" : false,
+          "flipV" : false,
+          "children" : [
+            {
+              "name" : "base_02",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+              "tileX" : 32,
+              "tileY" : 348,
+              "tileW" : 32,
+              "tileH" : 11,
+              "tileName" : "base_02",
+              "offsetX" : 0,
+              "offsetY" : 35,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 0,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : false,
+              "flipH" : false,
+              "flipV" : false
+            },
+            {
+              "name" : "Static_0102",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+              "tileX" : 18,
+              "tileY" : 132,
+              "tileW" : 96,
+              "tileH" : 54,
+              "tileName" : "Static_0102",
+              "offsetX" : 0,
+              "offsetY" : 0,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 1,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : false,
+              "flipH" : false,
+              "flipV" : false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ordinal" : 2,
+      "layers" : [
+        {
+          "name" : "TV_0101",
+          "visible" : true,
+          "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+          "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+          "tileX" : 14,
+          "tileY" : 264,
+          "tileW" : 100,
+          "tileH" : 61,
+          "tileName" : "TV_0101",
+          "offsetX" : 0,
+          "offsetY" : -5,
+          "angle" : 0.0000000000000000E+000,
+          "zIndex" : 0,
+          "pivotX" : 0,
+          "pivotY" : 0,
+          "drawBehindParent" : false,
+          "flipH" : false,
+          "flipV" : false,
+          "children" : [
+            {
+              "name" : "base_02",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+              "tileX" : 32,
+              "tileY" : 348,
+              "tileW" : 32,
+              "tileH" : 11,
+              "tileName" : "base_02",
+              "offsetX" : 0,
+              "offsetY" : 35,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 0,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : false,
+              "flipH" : false,
+              "flipV" : false
+            },
+            {
+              "name" : "Static_0103",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\Flat TV, Widscreen, Widescreen.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\TVTileset.tileset",
+              "tileX" : 18,
+              "tileY" : 196,
+              "tileW" : 96,
+              "tileH" : 54,
+              "tileName" : "Static_0103",
+              "offsetX" : 0,
+              "offsetY" : 0,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 1,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : false,
+              "flipH" : false,
+              "flipV" : false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

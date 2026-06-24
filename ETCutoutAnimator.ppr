@@ -1,0 +1,88 @@
+program ETcutoutAnimator;
+
+{$mode objfpc}{$H+}
+
+// =====================================================================
+// ETcutoutAnimator — Standalone executable for the cutout animation editor
+// =====================================================================
+//
+// This project compiles the same uCutoutAnimator form as a standalone
+// exe instead of a plugin DLL. The form code is identical — only the
+// entry point differs:
+//
+//   Plugin (.dll):  EditAction creates the form, calls LoadAnimations,
+//                   SetTilesetTile, ShowModal, then GetAnimations.
+//
+//   Standalone (.exe): Application.CreateForm + Application.Run. The
+//                   user loads .anim files via btnLoadAnim, edits,
+//                   saves via btnSaveAnim / btnOK, and exports
+//                   spritesheets via btnExportSprSet / btnExportMskSet.
+//
+// To build in Typhon/Lazarus:
+//   1. Create a new "Application" project
+//   2. Replace the auto-generated .ppr/.lpr with this file
+//   3. Add uCutoutAnimator.pas + .frm, uCutoutRenderer.pas,
+//      uSpritesheetDialog.pas + .frm, uSpritePicker.pas + .frm,
+//      uDebugLog.pas to the project
+//   4. Make sure BGRABitmap and VirtualTrees packages are in the
+//      project requirements
+//   5. Build
+
+uses
+  {$IFOPT D+}
+//    heaptrc,
+  {$ENDIF}
+  {$IFDEF UNIX}
+    cthreads,
+  {$ENDIF}
+  Interfaces, // LCL widgetset
+  Forms,
+  uCutoutAnimator,    // TCutoutAnimatorForm — the main editor form
+  uCutoutRenderer,    // RenderFrame / RenderSpritesheet / SaveSpritesheet
+  uSpritesheetDialog, // TSpritesheetDialog — preview/play exported sheets
+  uSpritePicker,      // TSpritePickerForm — tile picker (dependency)
+  uDebugLog;          // TDebugLogger — logging (dependency)
+
+{$R *.res}
+
+var
+  frm: TCutoutAnimatorForm;
+
+begin
+  // --- Logger setup (BEFORE Application.Initialize) ---
+  // uCutoutAnimator.FormCreate calls TDebugLogger.Debug(...) which
+  // writes to the log file. In the plugin, objectplugin.ppr's LoadPlugin
+  // calls SetLogFile first. In standalone, we must do it here — before
+  // any Debug call — or the logger writes to an unopened file and
+  // raises RunError(103) "File not open".
+  //
+  // The log file is written to the exe's directory so it's easy to find.
+  // SetLogLevel(dllDebug) enables all log levels; use dllError for less
+  // verbosity in production.
+  TDebugLogger.SetLogFile('CutoutAnimator.log');
+  {$IFOPT D+}
+  TDebugLogger.SetLogLevel(dllDebug);
+  SetHeapTraceOutput('heapdump_ETCTAnim.txt');
+  {$ELSE}
+  TDebugLogger.SetLogLevel(dllError);
+  {$ENDIF}
+  TDebugLogger.Debug('ETcutoutAnimator starting', {$I %CURRENTROUTINE%}, {$I %FILE%}, {$I %lineNum%});
+
+  Application.Initialize;
+  Application.CreateForm(TCutoutAnimatorForm, frm);
+
+  // --- Standalone mode tweaks ---
+  // The form was designed as a bsDialog modal form for the plugin.
+  // In standalone mode we want a resizable window with a meaningful
+  // caption so the user can size it to their workflow.
+  frm.Standalone := True;
+//  frm.BorderStyle := bsSizeable;
+  frm.Position := poScreenCenter;
+  frm.Caption := 'Cutout Animator';
+
+  // In standalone mode, btnCancel (ModalResult = mrCancel) closes the
+  // app. That's the expected "Exit" behavior. btnOK saves all and
+  // stays open (see btnOKClick — FStandalone guards ModalResult).
+
+  Application.Run;
+end.
