@@ -1,0 +1,131 @@
+{
+  "image" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.png",
+  "tiles" : [
+    {
+      "name" : "Head",
+      "x" : 85,
+      "y" : 15,
+      "width" : 22,
+      "height" : 21
+    },
+    {
+      "name" : "L_shoulder",
+      "x" : 151,
+      "y" : 97,
+      "width" : 7,
+      "height" : 8
+    },
+    {
+      "name" : "Pose",
+      "x" : 17,
+      "y" : 15,
+      "width" : 30,
+      "height" : 47
+    },
+    {
+      "name" : "L_Arm",
+      "x" : 215,
+      "y" : 101,
+      "width" : 6,
+      "height" : 6
+    },
+    {
+      "name" : "L_ForeArm",
+      "x" : 278,
+      "y" : 104,
+      "width" : 5,
+      "height" : 6
+    },
+    {
+      "name" : "L_Hand",
+      "x" : 342,
+      "y" : 108,
+      "width" : 7,
+      "height" : 7
+    },
+    {
+      "name" : "Chest",
+      "x" : 86,
+      "y" : 225,
+      "width" : 21,
+      "height" : 12
+    },
+    {
+      "name" : "Hips",
+      "x" : 152,
+      "y" : 234,
+      "width" : 18,
+      "height" : 9
+    },
+    {
+      "name" : "L_Thigh",
+      "x" : 155,
+      "y" : 175,
+      "width" : 9,
+      "height" : 8
+    },
+    {
+      "name" : "L_Leg",
+      "x" : 217,
+      "y" : 179,
+      "width" : 8,
+      "height" : 5
+    },
+    {
+      "name" : "L_Foot",
+      "x" : 280,
+      "y" : 184,
+      "width" : 9,
+      "height" : 6
+    },
+    {
+      "name" : "R_Shoulder",
+      "x" : 161,
+      "y" : 288,
+      "width" : 8,
+      "height" : 10
+    },
+    {
+      "name" : "R_Arm",
+      "x" : 224,
+      "y" : 291,
+      "width" : 6,
+      "height" : 6
+    },
+    {
+      "name" : "R_Forearm",
+      "x" : 290,
+      "y" : 296,
+      "width" : 5,
+      "height" : 6
+    },
+    {
+      "name" : "R_Hand",
+      "x" : 353,
+      "y" : 301,
+      "width" : 7,
+      "height" : 6
+    },
+    {
+      "name" : "R_Thigh",
+      "x" : 162,
+      "y" : 368,
+      "width" : 9,
+      "height" : 7
+    },
+    {
+      "name" : "R_Leg",
+      "x" : 226,
+      "y" : 370,
+      "width" : 8,
+      "height" : 5
+    },
+    {
+      "name" : "R_Foot",
+      "x" : 290,
+      "y" : 372,
+      "width" : 9,
+      "height" : 8
+    }
+  ]
+}

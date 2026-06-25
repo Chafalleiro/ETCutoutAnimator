@@ -1,0 +1,99 @@
+{
+  "name" : "rust_iron",
+  "rowIndex" : 0,
+  "frameCount" : 1,
+  "frameW" : 64,
+  "frameH" : 64,
+  "speedMs" : 100,
+  "transform" : 0,
+  "preset" : "",
+  "frames" : [
+    {
+      "ordinal" : 0,
+      "layers" : [
+        {
+          "name" : "Pose",
+          "visible" : true,
+          "sourceImage" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.png",
+          "tilesetPath" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.tileset",
+          "tileX" : 17,
+          "tileY" : 15,
+          "tileW" : 30,
+          "tileH" : 47,
+          "tileName" : "Pose",
+          "offsetX" : 0,
+          "offsetY" : 0,
+          "angle" : 0.0000000000000000E+000,
+          "zIndex" : 0,
+          "pivotX" : 0,
+          "pivotY" : 0,
+          "drawBehindParent" : true,
+          "flipH" : false,
+          "flipV" : false
+        },
+        {
+          "name" : "Head",
+          "visible" : true,
+          "sourceImage" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.png",
+          "tilesetPath" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.tileset",
+          "tileX" : 85,
+          "tileY" : 15,
+          "tileW" : 22,
+          "tileH" : 21,
+          "tileName" : "Head",
+          "offsetX" : 0,
+          "offsetY" : -13,
+          "angle" : 0.0000000000000000E+000,
+          "zIndex" : 1,
+          "pivotX" : 0,
+          "pivotY" : 0,
+          "drawBehindParent" : true,
+          "flipH" : true,
+          "flipV" : false,
+          "children" : [
+            {
+              "name" : "rust_iron",
+              "visible" : false,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETGame\\editors\\game\\Game\\Objects\\img\\hatchet.png",
+              "tilesetPath" : "",
+              "tileX" : 9,
+              "tileY" : 12,
+              "tileW" : 23,
+              "tileH" : 20,
+              "tileName" : "rust_iron",
+              "offsetX" : 0,
+              "offsetY" : 33,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 0,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : true,
+              "flipH" : true,
+              "flipV" : false
+            },
+            {
+              "name" : "L_shoulder",
+              "visible" : true,
+              "sourceImage" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.png",
+              "tilesetPath" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.tileset",
+              "tileX" : 151,
+              "tileY" : 97,
+              "tileW" : 7,
+              "tileH" : 8,
+              "tileName" : "L_shoulder",
+              "offsetX" : 11,
+              "offsetY" : 10,
+              "angle" : 0.0000000000000000E+000,
+              "zIndex" : 1,
+              "pivotX" : 0,
+              "pivotY" : 0,
+              "drawBehindParent" : true,
+              "flipH" : false,
+              "flipV" : false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
