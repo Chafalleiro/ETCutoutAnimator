@@ -1,5 +1,10 @@
 # Cutout Animator — Operating Guide
 
+[![Version](https://img.shields.io/badge/version-0.1-blue)](https://github.com/Chafalleiro/ETRes/releases)
+
+[![License](https://img.shields.io/badge/license-MTL-green)](LICENSE)
+
+
 
 
 A paper-doll style cutout animation editor for game sprites. Build characters
