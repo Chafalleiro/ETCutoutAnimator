@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, uDebugLog,
-  ExtDlgs, Spin, ComCtrls, OpenGLContext,
+  ExtDlgs, Spin, ComCtrls, OpenGLContext, uPathUtils,
   BGRABitmap, BGRABitmapTypes;
 
 type
@@ -112,6 +112,13 @@ type
     function  FindTileAt(IX, IY: Integer): Integer;
     procedure NormalizeRect(var AX, AY, AW, AH: Integer);
     procedure SelectTile(Index: Integer);
+
+    // NOTE: MakeRelativePath + ResolveRelativePath have been extracted to
+    // the shared uPathUtils unit. Call them as bare functions:
+    //   MakeRelativePath(BaseFile, TargetPath)
+    //   ResolveRelativePath(BaseFile, RelativePath)
+    // uPathUtils is in the uses clause so the unqualified calls resolve
+    // to the unit-level functions.
 
   public
     destructor Destroy; override;
@@ -307,6 +314,10 @@ begin
   end;
 end;
 
+{============================================================================}
+{ Path helpers — now in uPathUtils unit                                     }
+{============================================================================}
+
 procedure TSpritePickerForm.LoadTileset(const APath: string);
 var
   SL: TStringList;
@@ -325,16 +336,14 @@ begin
       // via GetTilesetPath after the picker closes.
       FTilesetPath := APath;
 
-      // Load the source image referenced by the tileset
-      ImgPath := JSON.Get('image', '');
-      if ImgPath <> '' then
-      begin
-        // Resolve relative paths against the tileset file directory
-        if not FileExists(ImgPath) then
-          ImgPath := ExtractFilePath(APath) + ImgPath;
-        if FileExists(ImgPath) then
-          SetImage(ImgPath);
-      end;
+      // Load the source image referenced by the tileset.
+      // The image path in the .tileset file is stored RELATIVE to the
+      // .tileset file's directory (see btnSaveSetClick). ResolveRelativePath
+      // converts it back to absolute. It also accepts already-absolute
+      // paths (legacy .tileset files) so existing files keep loading.
+      ImgPath := ResolveRelativePath(APath, JSON.Get('image', ''));
+      if (ImgPath <> '') and FileExists(ImgPath) then
+        SetImage(ImgPath);
 
       // Load tile definitions
       if JSON.Find('tiles') <> nil then
@@ -1053,7 +1062,15 @@ begin
 
     JSON := TJSONObject.Create;
     try
-      JSON.Add('image', FImagePath);
+      // Store the image path RELATIVE to the .tileset file's directory
+      // so the .tileset file is self-contained and portable — the whole
+      // bundle (.tileset + image) can be moved/zipped without breaking
+      // the reference. FImagePath is absolute in memory; MakeRelativePath
+      // converts it against SavePath (the .tileset file path).
+      //
+      // On load, LoadTileset / btnLoadSetClick call ResolveRelativePath
+      // to convert it back to absolute before SetImage.
+      JSON.Add('image', MakeRelativePath(SavePath, FImagePath));
 
       Arr := TJSONArray.Create;
       for i := 0 to High(FTiles) do
@@ -1133,16 +1150,14 @@ begin
         // via GetTilesetPath after the picker closes.
         FTilesetPath := OD.FileName;
 
-        // Load the source image
-        ImgPath := JSON.Get('image', '');
-        if ImgPath <> '' then
-        begin
-          // Resolve relative paths against the tileset file directory
-          if not FileExists(ImgPath) then
-            ImgPath := ExtractFilePath(OD.FileName) + ImgPath;
-          if FileExists(ImgPath) then
-            SetImage(ImgPath);
-        end;
+        // Load the source image.
+        // The image path in the .tileset file is stored RELATIVE to the
+        // .tileset file's directory (see btnSaveSetClick). ResolveRelativePath
+        // converts it back to absolute. It also accepts already-absolute
+        // paths (legacy .tileset files) so existing files keep loading.
+        ImgPath := ResolveRelativePath(OD.FileName, JSON.Get('image', ''));
+        if (ImgPath <> '') and FileExists(ImgPath) then
+          SetImage(ImgPath);
 
         // Load tile definitions
         if JSON.Find('tiles') <> nil then

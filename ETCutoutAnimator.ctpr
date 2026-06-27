@@ -30,7 +30,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="C:\vhost\Repositorios\ETCutoutAnimator"/>
+            <OtherUnitFiles Value="C:\vhost\Repositorios\ETCutoutAnimator\"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -109,14 +109,6 @@
         <UnitName Value="uDebugLog"/>
       </Unit>
       <Unit>
-        <Filename Value="uObjectEditorForm.pas"/>
-        <FRMtype Value="200"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="ObjectEditorForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit>
-      <Unit>
         <Filename Value="uspritesheetdialog.pas"/>
         <FRMtype Value="200"/>
         <IsPartOfProject Value="True"/>
@@ -134,6 +126,10 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="uSpritePicker"/>
       </Unit>
+      <Unit>
+        <Filename Value="uPathUtils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -144,7 +140,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="C:\vhost\Repositorios\ETCutoutAnimator"/>
+      <OtherUnitFiles Value="C:\vhost\Repositorios\ETCutoutAnimator\"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

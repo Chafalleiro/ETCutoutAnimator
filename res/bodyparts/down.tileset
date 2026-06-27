@@ -1,5 +1,5 @@
 {
-  "image" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\down.png",
+  "image" : "down.png",
   "tiles" : [
     {
       "name" : "Head",

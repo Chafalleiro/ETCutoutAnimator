@@ -7,9 +7,9 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Spin, ComCtrls, Grids, BGRABitmap, BGRABitmapTypes,
-  VirtualTrees, uDebugLog, uSpritePicker, Types,
+  VirtualTrees, uDebugLog, uSpritePicker, uPathUtils, Types,
   {$ifdef windows}
-    ActiveX,
+    ActiveX, ShlObj,
   {$else}
     FakeActiveX,
   {$endif}
@@ -106,7 +106,9 @@ type
   { TCutoutAnimatorForm }
 
   TCutoutAnimatorForm = class(TForm)
+    btnAct: TButton;
     btnEditLayer: TButton;
+    btnNewdAct: TButton;
     btnNewLayer: TButton;
     btnDelLayer: TButton;
     btnExportSprSet: TButton;
@@ -207,6 +209,7 @@ type
     // Icon info
     lblIconName: TLabel;
 
+    procedure btnActClick(Sender: TObject);
     procedure btnAddFrameClick(Sender: TObject);
     procedure btnDelFrameClick(Sender: TObject);
     procedure btnDupFrameClick(Sender: TObject);
@@ -216,6 +219,7 @@ type
     procedure btnEditLayerClick(Sender: TObject);
     procedure btnImgEditClick(Sender: TObject);
     procedure btnLoadAnimClick(Sender: TObject);
+    procedure btnNewdActClick(Sender: TObject);
     procedure btnNewLayerClick(Sender: TObject);
     procedure btnSaveAnimClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -302,6 +306,19 @@ type
     // FPC requires the backing field to be in scope before the property.
     FAnimBasePath: string;
     FStandalone: boolean;  // True = running as standalone exe (not plugin)
+    // --- Config + .action file management ---
+    // Path to the currently-loaded .action file (empty if none).
+    // Set by btnActClick (load) / btnNewdActClick (new) / btnOKClick (save).
+    FActionFilePath: string;
+    // Path to the config file in the user's Documents directory.
+    // Resolved once in FormCreate and reused for Load/SaveConfig.
+    FConfigFilePath: string;
+    // Last .action file path (persisted in config so we can reopen it).
+    // Updated whenever a .action file is loaded, created, or saved.
+    FLastActionFilePath: string;
+    // App executable path (ParamStr(0)). Stored in config so the user
+    // can see where the app lives — handy when the .exe is moved.
+    FAppPath: string;
   public
     // Base directory for new .anim files. The caller sets this to the
     // .objs file's directory before ShowModal so newly-created animations
@@ -311,6 +328,10 @@ type
     // close the form (no ModalResult). Set to True by the standalone .lpr
     // project. Default False (plugin mode — EditAction expects mrOk).
     property Standalone: boolean read FStandalone write FStandalone;
+    // Path to the currently-loaded .action file. Empty when no file is
+    // loaded. The plugin host can read this after ShowModal to know
+    // which .action file was last saved.
+    property ActionFilePath: string read FActionFilePath;
 
   private
     FBitmap: TBGRABitmap;
@@ -423,9 +444,49 @@ type
 
     // btnOK click handler — saves all animations then closes
     procedure btnOKClick(Sender: TObject);
+    // btnCancel click handler — discards changes and closes.
+    //   Standalone mode: terminates the application (Cancel = Exit).
+    //   Plugin mode:     sets ModalResult := mrCancel so the host
+    //                    (EditAction) knows to discard any in-memory
+    //                    edits and not write them back to the .objs file.
+    procedure btnCancelClick(Sender: TObject);
     procedure btnExportSprSetClick(Sender: TObject);
     procedure btnExportMskSetClick(Sender: TObject);
     procedure btnPreviewSpriteClick(Sender: TObject);
+
+    // --- Config + .action file management ---
+    // Returns the user's Documents directory (cross-platform). On Windows
+    // uses SHGetFolderPath(CSIDL_PERSONAL); on Linux/macOS tries
+    // $XDG_DOCUMENTS_DIR, then ~/Documents.
+    function  GetDocumentsDir: string;
+    // Returns the absolute path to the config file. Lives in the
+    // Documents directory; falls back to the app directory if Documents
+    // is unavailable.
+    function  GetConfigFilePath: string;
+    // Load/Save the JSON config file (appPath + lastActionFile). On
+    // first run (no config exists) LoadConfig creates one with an empty
+    // lastActionFile.
+    procedure LoadConfig;
+    procedure SaveConfig;
+
+    // NOTE: MakeRelativePath + ResolveRelativePath have been extracted to
+    // the shared uPathUtils unit. Call them as bare functions:
+    //   MakeRelativePath(BaseFile, TargetPath)
+    //   ResolveRelativePath(BaseFile, RelativePath)
+    // uPathUtils is in the uses clause so the unqualified calls resolve
+    // to the unit-level functions.
+
+    // Save the current in-memory state to a .action file (JSON). All
+    // paths are written relative to the .action file's directory.
+    procedure SaveActionToFile(const FileName: string);
+    // Load a .action file: restores action name + icon info into the
+    // form controls, then LoadAnimationFromFile() every referenced
+    // .anim file into FAnimations. Updates FActionFilePath + config.
+    procedure LoadActionFromFile(const FileName: string);
+    // Clear all in-memory data (action name, icon, animations) and
+    // replace with empty placeholders. Called by btnNewdActClick before
+    // prompting for a Save As location.
+    procedure ResetToEmptyPlaceholders;
   end;
 
 implementation
@@ -461,6 +522,13 @@ begin
   FUpdating := False;
   FPendingDragLayer := nil;
   FStandalone := False;  // default: plugin mode. The .lpr sets True.
+  // --- Config + .action file paths ---
+  // FActionFilePath is empty until the user loads/creates a .action file.
+  // FLastActionFilePath is loaded from the config file below.
+  FActionFilePath := '';
+  FLastActionFilePath := '';
+  FAppPath := ParamStr(0);
+  FConfigFilePath := '';
   // One-shot timer: fires once after drag-drop to rebuild the tree
   // once VST has finished its OLE drag cleanup. Disabled until needed.
   FDragRefreshTimer := TTimer.Create(Self);
@@ -494,6 +562,13 @@ begin
   // Pivot marker visible by default — user can uncheck cbPVis to hide it.
   if cbPVis <> nil then
     cbPVis.Checked := True;
+
+  // --- Load the JSON config from the user's Documents directory ---
+  // The config stores the app path + the last .action file used. If
+  // no config exists yet, LoadConfig creates one with an empty
+  // lastActionFile so the user can find it and edit it by hand.
+  FConfigFilePath := GetConfigFilePath;
+  LoadConfig;
 end;
 
 procedure TCutoutAnimatorForm.UpdateIconImage(ABmp: TBGRABitmap);
@@ -708,6 +783,46 @@ begin
     end;
   finally
     OD.Free;
+  end;
+end;
+
+procedure TCutoutAnimatorForm.btnNewdActClick(Sender: TObject);
+var
+  SD: TSaveDialog;
+begin
+  // 'New Action': reset the form to empty placeholders, then prompt
+  // for a Save As location to write the new .action file. This matches
+  // the user's chosen behaviour ("Both" — reset memory AND save).
+  //
+  // Resetting first means the saved .action file contains only empty
+  // placeholders — no stale data from whatever was loaded before. The
+  // user then edits the action name / icon / animations and presses OK
+  // to save again with real content.
+  ResetToEmptyPlaceholders;
+
+  SD := TSaveDialog.Create(Self);
+  try
+    SD.Title := 'Save new action file';
+    SD.Filter := 'Action files|*.action|All files|*.*';
+    SD.DefaultExt := 'action';
+    // Pre-fill the dialog directory with something useful: the
+    // currently-loaded .action file's dir, then the last-used .action
+    // dir, then the app directory.
+    if FActionFilePath <> '' then
+      SD.InitialDir := ExtractFilePath(FActionFilePath)
+    else if FLastActionFilePath <> '' then
+      SD.InitialDir := ExtractFilePath(FLastActionFilePath)
+    else
+      SD.InitialDir := ExtractFilePath(ParamStr(0));
+    if not SD.Execute then Exit;
+
+    FActionFilePath := SD.FileName;
+    SaveActionToFile(FActionFilePath);
+    FLastActionFilePath := FActionFilePath;
+    SaveConfig;
+    ShowMessage('Created new action file: ' + FActionFilePath);
+  finally
+    SD.Free;
   end;
 end;
 
@@ -968,6 +1083,37 @@ begin
   RefreshAnimationList;
 end;
 
+procedure TCutoutAnimatorForm.btnActClick(Sender: TObject);
+var
+  OD: TOpenDialog;
+begin
+  // 'Load Action': pick a .action file and load it. The .action file
+  // contains the action name, icon info, and a list of .anim files —
+  // all with paths relative to the .action file's directory.
+  //
+  // LoadActionFromFile resolves those relative paths back to absolute,
+  // populates the form controls (edAction, edImage, icon geometry),
+  // then calls LoadAnimationFromFile for each .anim file to rebuild
+  // FAnimations from scratch.
+  OD := TOpenDialog.Create(Self);
+  try
+    OD.Title := 'Load action file';
+    OD.Filter := 'Action files|*.action|All files|*.*';
+    OD.DefaultExt := 'action';
+    // Pre-fill the dialog directory with the last-used .action dir
+    // so the user doesn't have to navigate back to it every session.
+    if FLastActionFilePath <> '' then
+      OD.InitialDir := ExtractFilePath(FLastActionFilePath)
+    else
+      OD.InitialDir := ExtractFilePath(ParamStr(0));
+    if not OD.Execute then Exit;
+
+    LoadActionFromFile(OD.FileName);
+  finally
+    OD.Free;
+  end;
+end;
+
 procedure TCutoutAnimatorForm.btnDelFrameClick(Sender: TObject);
 var
   anim: PAnimationDef;
@@ -1108,6 +1254,15 @@ end;
 procedure TCutoutAnimatorForm.FormDestroy(Sender: TObject);
 begin
   Timer.Enabled := False;
+  // Persist the config so the last .action file path is remembered
+  // across sessions. We save unconditionally — if nothing changed
+  // this just rewrites the same file.
+  try
+    SaveConfig;
+  except
+    on E: Exception do
+      TDebugLogger.ErrorFmt('FormDestroy: SaveConfig failed: %s', [E.Message]);
+  end;
   FBitmap.Free;
   FCurrentFrame.Free;
   ClearAnimations(FAnimations);
@@ -2688,6 +2843,10 @@ begin
   // Wire btnOK to save all animations before closing
   if btnOK <> nil then
     btnOK.OnClick := @btnOKClick;
+  // Wire btnCancel to discard changes and close (standalone: terminate
+  // the app; plugin: mrCancel so EditAction knows to discard edits).
+  if btnCancel <> nil then
+    btnCancel.OnClick := @btnCancelClick;
   // Wire export buttons to the spritesheet renderer
   if btnExportSprSet <> nil then
     btnExportSprSet.OnClick := @btnExportSprSetClick;
@@ -3076,8 +3235,22 @@ procedure TCutoutAnimatorForm.SaveAnimationToFile(const FileName: string;
       LayerObj := TJSONObject.Create;
       LayerObj.Add('name',        Arr[i]^.Name);
       LayerObj.Add('visible',     Arr[i]^.Visible);
-      LayerObj.Add('sourceImage', Arr[i]^.SourceImage);
-      LayerObj.Add('tilesetPath', Arr[i]^.TilesetPath);
+      // sourceImage + tilesetPath are stored as paths RELATIVE to this
+      // .anim file's directory so the .anim file is self-contained and
+      // portable — the whole bundle (.anim + images + .tileset files)
+      // can be moved/zipped without breaking references.
+      //
+      //   sourceImage  = path to the actual image file (PNG/BMP/...) the
+      //                  renderer loads for this layer's tile.
+      //   tilesetPath  = path to the .tileset descriptor the sprite
+      //                  picker loads when editing this layer. Empty if
+      //                  the layer was created from a plain image.
+      //
+      // Both are absolute in memory; MakeRelativePath converts them
+      // against the .anim file's directory (the FileName parameter of
+      // the outer SaveAnimationToFile procedure, captured by closure).
+      LayerObj.Add('sourceImage', MakeRelativePath(FileName, Arr[i]^.SourceImage));
+      LayerObj.Add('tilesetPath', MakeRelativePath(FileName, Arr[i]^.TilesetPath));
       LayerObj.Add('tileX',       Arr[i]^.TileX);
       LayerObj.Add('tileY',       Arr[i]^.TileY);
       LayerObj.Add('tileW',       Arr[i]^.TileW);
@@ -3163,8 +3336,21 @@ function TCutoutAnimatorForm.LoadAnimationFromFile(const FileName: string;
       ItemObj := JArr.Objects[i];
       Arr[i]^.Name        := ItemObj.Get('name',        'layer_' + IntToStr(i+1));
       Arr[i]^.Visible     := ItemObj.Get('visible',     True);
-      Arr[i]^.SourceImage := ItemObj.Get('sourceImage', '');
-      Arr[i]^.TilesetPath := ItemObj.Get('tilesetPath', '');
+      // sourceImage + tilesetPath are stored as paths RELATIVE to this
+      // .anim file's directory. ResolveRelativePath converts them back
+      // to absolute paths in memory so the renderer (which expects
+      // absolute paths in SourceImage) and the sprite picker (which
+      // expects absolute paths in TilesetPath) work unchanged.
+      //
+      // Legacy support: ResolveRelativePath also accepts already-absolute
+      // paths (old .anim files written before relative-path support) and
+      // returns them as-is, so existing files keep loading.
+      //
+      // The FileName parameter (of the outer LoadAnimationFromFile
+      // procedure, captured by closure) is the .anim file's path —
+      // that's the base against which the relative paths resolve.
+      Arr[i]^.SourceImage := ResolveRelativePath(FileName, ItemObj.Get('sourceImage', ''));
+      Arr[i]^.TilesetPath := ResolveRelativePath(FileName, ItemObj.Get('tilesetPath', ''));
       Arr[i]^.TileX       := ItemObj.Get('tileX',       0);
       Arr[i]^.TileY       := ItemObj.Get('tileY',       0);
       Arr[i]^.TileW       := ItemObj.Get('tileW',       0);
@@ -3621,12 +3807,61 @@ end;
 
 procedure TCutoutAnimatorForm.btnOKClick(Sender: TObject);
 begin
-  // Save every animation to its .anim file. In plugin mode (default),
-  // close the dialog with mrOk so EditAction can read back the data.
-  // In standalone mode, just save — the user stays in the editor.
+  // Save every animation to its .anim file. SaveAllAnimationsToFiles
+  // also calls EnsureAnimFilePath for each animation, so every
+  // PAnimationDef.AnimFilePath is now populated with an absolute path
+  // — important because SaveActionToFile reads those paths to write
+  // them (relative) into the .action file.
   SaveAllAnimationsToFiles;
+
+  // If a .action file path is known (loaded or created via New Action),
+  // save the .action file too. This persists the action name, icon
+  // info, and the list of .anim file references so the next session
+  // can reopen the whole action with one Load Action click.
+  if FActionFilePath <> '' then
+  begin
+    try
+      SaveActionToFile(FActionFilePath);
+      FLastActionFilePath := FActionFilePath;
+      SaveConfig;
+    except
+      on E: Exception do
+        TDebugLogger.ErrorFmt('btnOKClick: SaveActionToFile failed: %s',
+          [E.Message]);
+    end;
+  end;
+
+  // In plugin mode (default), close the dialog with mrOk so EditAction
+  // can read back the data. In standalone mode, just save — the user
+  // stays in the editor.
   if not FStandalone then
     ModalResult := mrOk;
+end;
+
+procedure TCutoutAnimatorForm.btnCancelClick(Sender: TObject);
+begin
+  // Discard any unsaved changes and close.
+  //
+  //   Standalone mode: Cancel = Exit the application. The form is the
+  //                    main window, so closing it terminates the app.
+  //                    We still want the config to be persisted (the
+  //                    last .action file path) so the next session
+  //                    remembers where to reopen from — FormDestroy
+  //                    handles that, so we don't need to do it here.
+  //                    Application.Terminate is the cleanest way: it
+  //                    lets the LCL finish processing the current event,
+  //                    then closes the main loop, which fires
+  //                    FormDestroy → SaveConfig, then exits.
+  //
+  //   Plugin mode:     Cancel = close the modal dialog with mrCancel.
+  //                    The host (EditAction) checks the ModalResult and
+  //                    skips writing back the (discarded) in-memory
+  //                    edits to the .objs file. No save happens — that's
+  //                    the whole point of Cancel vs OK.
+  if FStandalone then
+    Application.Terminate
+  else
+    ModalResult := mrCancel;
 end;
 
 procedure TCutoutAnimatorForm.btnExportSprSetClick(Sender: TObject);
@@ -3763,6 +3998,429 @@ begin
   finally
     dlg.Free;
   end;
+end;
+
+{ ===================================================================== }
+{ Config + .action file management                                      }
+{ ===================================================================== }
+
+function TCutoutAnimatorForm.GetDocumentsDir: string;
+{$ifdef windows}
+var
+  Buf: array[0..MAX_PATH] of Char;
+{$endif}
+begin
+  // Returns the user's Documents directory, cross-platform.
+  //   Windows: SHGetFolderPath with CSIDL_PERSONAL respects per-user
+  //            folder redirection and localization (e.g. "Documentos"
+  //            on a Spanish Windows). Falls back to GetUserDir.
+  //   Linux:   $XDG_DOCUMENTS_DIR (per the XDG user-dirs spec), else
+  //            ~/Documents.
+  //   macOS:   ~/Documents.
+  Result := '';
+  {$ifdef windows}
+  if SHGetFolderPath(0, CSIDL_PERSONAL, 0, 0, @Buf[0]) = S_OK then
+    Result := Buf
+  else
+    Result := GetUserDir;
+  {$else}
+  Result := GetEnvironmentVariable('XDG_DOCUMENTS_DIR');
+  if (Result = '') or not DirectoryExists(Result) then
+  begin
+    Result := GetUserDir;
+    if Result <> '' then
+      Result := IncludeTrailingPathDelimiter(Result) + 'Documents';
+  end;
+  {$endif}
+  if Result = '' then
+    Result := GetUserDir;
+end;
+
+function TCutoutAnimatorForm.GetConfigFilePath: string;
+var
+  D: string;
+begin
+  // The config file lives in the user's Documents directory so the
+  // user can easily find and edit it by hand. If Documents is not
+  // available (e.g. headless Linux without XDG), fall back to the
+  // app's own directory — better than failing silently.
+  D := GetDocumentsDir;
+  if (D = '') or not DirectoryExists(D) then
+    D := ExtractFilePath(ParamStr(0));
+  Result := IncludeTrailingPathDelimiter(D) + 'CutoutAnimator.cfg.json';
+end;
+
+procedure TCutoutAnimatorForm.LoadConfig;
+var
+  SL: TStringList;
+  JSON: TJSONObject;
+begin
+  if FConfigFilePath = '' then Exit;
+  if not FileExists(FConfigFilePath) then
+  begin
+    // First run: create a config with an empty lastActionFile so the
+    // user can find it in their Documents folder and edit it by hand
+    // if needed. The appPath is filled in from ParamStr(0).
+    FLastActionFilePath := '';
+    SaveConfig;
+    Exit;
+  end;
+  SL := TStringList.Create;
+  try
+    try
+      SL.LoadFromFile(FConfigFilePath);
+      JSON := GetJSON(SL.Text) as TJSONObject;
+    except
+      on E: Exception do
+      begin
+        TDebugLogger.ErrorFmt('LoadConfig: parse error: %s', [E.Message]);
+        // Don't show a dialog here — config corruption is recoverable
+        // (we just lose the last-action-file memory) and a modal
+        // dialog on startup is annoying.
+        Exit;
+      end;
+    end;
+    try
+      FAppPath := JSON.Get('appPath', ParamStr(0));
+      FLastActionFilePath := JSON.Get('lastActionFile', '');
+    finally
+      JSON.Free;
+    end;
+  finally
+    SL.Free;
+  end;
+end;
+
+procedure TCutoutAnimatorForm.SaveConfig;
+var
+  JSON: TJSONObject;
+  SL: TStringList;
+begin
+  if FConfigFilePath = '' then Exit;
+  JSON := TJSONObject.Create;
+  try
+    JSON.Add('appPath', FAppPath);
+    JSON.Add('lastActionFile', FLastActionFilePath);
+    SL := TStringList.Create;
+    try
+      SL.Text := JSON.FormatJSON;
+      SL.SaveToFile(FConfigFilePath);
+    finally
+      SL.Free;
+    end;
+  finally
+    JSON.Free;
+  end;
+end;
+
+procedure TCutoutAnimatorForm.SaveActionToFile(const FileName: string);
+var
+  JSON, IconObj: TJSONObject;
+  AnimArr: TJSONArray;
+  SL: TStringList;
+  i: integer;
+  anim: PAnimationDef;
+  TilesetRel, ImageRel, AnimRel, Ext: string;
+begin
+  // Serialize the current in-memory state to a .action file (JSON).
+  // All paths are stored relative to the .action file's directory so
+  // the whole .action bundle (action file + .anim files + .tileset +
+  // images) can be moved/zipped without breaking references.
+  JSON := TJSONObject.Create;
+  try
+    // Action name (from edAction.Text — the action's display name).
+    JSON.Add('actionName', edAction.Text);
+
+    // --- Icon info ---
+    // The "icon" object bundles everything needed to reconstruct the
+    // action icon tile: the tileset file (or plain image), the image
+    // file referenced by the tileset (if any), and the tile's geometry
+    // + name. On load, SetTilesetTile uses these to rebuild FBitmap
+    // and the icon preview.
+    IconObj := TJSONObject.Create;
+
+    // tileset file path (from edImage.Text), relative to the .action
+    // file. This is whatever the user picked via Browse — could be a
+    // .tileset descriptor file OR a plain image (PNG/BMP/...).
+    TilesetRel := MakeRelativePath(FileName, edImage.Text);
+    IconObj.Add('tilesetFile', TilesetRel);
+
+    // icon image file — Distinguish per user's choice:
+    //   .tileset/.json descriptor → store the referenced image path
+    //                              (FImageFilename) so the loader can
+    //                              find the actual PNG/BMP.
+    //   plain image (PNG/BMP/...) → leave empty; the tilesetFile field
+    //                              already holds the image path so
+    //                              storing it twice would be redundant.
+    Ext := LowerCase(ExtractFileExt(edImage.Text));
+    if (Ext = '.tileset') or (Ext = '.json') then
+      ImageRel := MakeRelativePath(FileName, FImageFilename)
+    else
+      ImageRel := '';
+    IconObj.Add('imageFile', ImageRel);
+
+    // Icon geometry (seTileW, seTileH, seXorig, seYorig) and name.
+    // These mirror what SetTilesetTile writes when a tile is picked,
+    // and what LoadActionFromFile passes back into SetTilesetTile.
+    IconObj.Add('x', seXorig.Value);
+    IconObj.Add('y', seYorig.Value);
+    IconObj.Add('width', seTileW.Value);
+    IconObj.Add('height', seTileH.Value);
+    IconObj.Add('name', lblIconName.Caption);
+    JSON.Add('icon', IconObj);
+
+    // --- Animation files list ---
+    // Each entry is the path to a .anim file, relative to the .action
+    // file. Animations without a file path (e.g. a freshly-created
+    // placeholder from ResetToEmptyPlaceholders) are skipped — we
+    // don't write empty strings because they'd just produce confusing
+    // "" entries in the JSON that the loader would have to ignore.
+    //
+    // On btnOKClick, SaveAllAnimationsToFiles runs first and calls
+    // EnsureAnimFilePath for each animation, so by the time we get
+    // here every animation has an absolute AnimFilePath.
+    AnimArr := TJSONArray.Create;
+    for i := 0 to FAnimations.Count - 1 do
+    begin
+      anim := PAnimationDef(FAnimations[i]);
+      if (anim <> nil) and (anim^.AnimFilePath <> '') then
+      begin
+        AnimRel := MakeRelativePath(FileName, anim^.AnimFilePath);
+        AnimArr.Add(AnimRel);
+      end;
+    end;
+    JSON.Add('animations', AnimArr);
+
+    SL := TStringList.Create;
+    try
+      SL.Text := JSON.FormatJSON;
+      SL.SaveToFile(FileName);
+    finally
+      SL.Free;
+    end;
+  finally
+    JSON.Free;
+  end;
+end;
+
+procedure TCutoutAnimatorForm.LoadActionFromFile(const FileName: string);
+var
+  SL: TStringList;
+  JSON, IconObj: TJSONObject;
+  AnimArr: TJSONArray;
+  i: integer;
+  AnimPath, TilesetAbs, ImageAbs, Ext: string;
+  loadedAnim: PAnimationDef;
+begin
+  // Load a .action file: parse the JSON, restore the form controls
+  // (action name, icon info), then LoadAnimationFromFile() every
+  // referenced .anim file into FAnimations. All relative paths in
+  // the .action file are resolved against the .action file's
+  // directory so the bundle is portable.
+  if not FileExists(FileName) then
+  begin
+    ShowMessage('Action file not found: ' + FileName);
+    Exit;
+  end;
+  SL := TStringList.Create;
+  try
+    try
+      SL.LoadFromFile(FileName);
+      JSON := GetJSON(SL.Text) as TJSONObject;
+    except
+      on E: Exception do
+      begin
+        TDebugLogger.ErrorFmt('LoadActionFromFile: parse error: %s', [E.Message]);
+        ShowMessage('Failed to parse action file: ' + E.Message);
+        Exit;
+      end;
+    end;
+    try
+      // --- Action name ---
+      edAction.Text := JSON.Get('actionName', '');
+
+      // --- Icon info ---
+      if JSON.Find('icon') <> nil then
+      begin
+        IconObj := JSON.Objects['icon'];
+        TilesetAbs := ResolveRelativePath(FileName,
+          IconObj.Get('tilesetFile', ''));
+        ImageAbs := ResolveRelativePath(FileName,
+          IconObj.Get('imageFile', ''));
+
+        // Restore geometry + name first so SetTilesetTile can override
+        // them with the tile's actual dimensions if needed.
+        seXorig.Value := IconObj.Get('x', 0);
+        seYorig.Value := IconObj.Get('y', 0);
+        seTileW.Value := IconObj.Get('width', 32);
+        seTileH.Value := IconObj.Get('height', 32);
+        lblIconName.Caption := IconObj.Get('name', '');
+
+        // Load the icon bitmap into FBitmap + the icon preview.
+        // Distinguish between .tileset (two paths) and plain image
+        // (one path) — same logic as SaveActionToFile.
+        if (TilesetAbs <> '') and FileExists(TilesetAbs) then
+        begin
+          Ext := LowerCase(ExtractFileExt(TilesetAbs));
+          if (Ext = '.tileset') or (Ext = '.json') then
+          begin
+            // .tileset descriptor: pass descriptor path + image path.
+            // If ImageAbs is empty/missing, SetTilesetTile will exit
+            // early — at least populate edImage so the user can see
+            // what was expected and re-pick the image.
+            if (ImageAbs <> '') and FileExists(ImageAbs) then
+              SetTilesetTile(TilesetAbs, ImageAbs,
+                seXorig.Value, seYorig.Value,
+                seTileW.Value, seTileH.Value,
+                lblIconName.Caption)
+            else
+            begin
+              edImage.Text := TilesetAbs;
+              FImageFilename := '';
+            end;
+          end
+          else
+          begin
+            // Plain image: pass the image path as BOTH args so
+            // edImage.Text = image path (matches btnBrowseClick
+            // behaviour for plain images).
+            SetTilesetTile(TilesetAbs, TilesetAbs,
+              seXorig.Value, seYorig.Value,
+              seTileW.Value, seTileH.Value,
+              lblIconName.Caption);
+          end;
+        end
+        else
+        begin
+          // tilesetFile is empty or missing — just clear the icon.
+          edImage.Text := '';
+          FImageFilename := '';
+        end;
+      end;
+
+      // --- Animation files ---
+      // Clear the current animation list and load each .anim file
+      // referenced in the .action file. Animations are appended in
+      // the order they appear in the JSON array, with RowIndex
+      // assigned by position so the spritesheet row order matches.
+      ClearAnimations(FAnimations);
+      if JSON.Find('animations') <> nil then
+      begin
+        AnimArr := JSON.Arrays['animations'];
+        for i := 0 to AnimArr.Count - 1 do
+        begin
+          AnimPath := ResolveRelativePath(FileName, AnimArr.Strings[i]);
+          if (AnimPath <> '') and FileExists(AnimPath) then
+          begin
+            if LoadAnimationFromFile(AnimPath, loadedAnim) then
+            begin
+              loadedAnim^.RowIndex := FAnimations.Count;
+              // AnimFilePath is left empty by LoadAnimationFromFile;
+              // set it here so subsequent saves know where to write.
+              loadedAnim^.AnimFilePath := AnimPath;
+              FAnimations.Add(loadedAnim);
+            end
+            else
+              TDebugLogger.ErrorFmt(
+                'LoadActionFromFile: failed to load animation: %s',
+                [AnimPath]);
+          end;
+        end;
+      end;
+      RefreshAnimationList;
+      if FAnimations.Count > 0 then
+        SelectAnimation(0);
+
+      // Track the loaded .action file path so OK saves back to it.
+      FActionFilePath := FileName;
+      // Update last-action in config so the next session remembers it.
+      FLastActionFilePath := FileName;
+      SaveConfig;
+
+      // In standalone mode, use the .action file's directory as the
+      // base path for new .anim files (matches btnLoadAnimClick
+      // behaviour so newly-created animations land next to the
+      // .action file).
+      if FStandalone then
+        FAnimBasePath := ExtractFilePath(FileName);
+
+      ShowMessage('Loaded action from ' + FileName);
+    finally
+      JSON.Free;
+    end;
+  finally
+    SL.Free;
+  end;
+end;
+
+procedure TCutoutAnimatorForm.ResetToEmptyPlaceholders;
+var
+  anim: PAnimationDef;
+begin
+  // Clear all in-memory data and replace with empty placeholders.
+  // Called by btnNewdActClick before prompting for a Save As location
+  // so the new .action file starts clean (no stale data carried over
+  // from whatever was loaded before).
+
+  // --- Action name ---
+  edAction.Text := '';
+
+  // --- Icon info ---
+  // Empty paths, default geometry (32x32 at 0,0), blank preview.
+  edImage.Text := '';
+  lblIconName.Caption := '';
+  seTileW.Value := 32;
+  seTileH.Value := 32;
+  seXorig.Value := 0;
+  seYorig.Value := 0;
+  FImageFilename := '';
+  FTileName := '';
+  FTileX := 0;
+  FTileY := 0;
+  FTileWidth := 32;
+  FTileHeight := 32;
+  FFromTileset := False;
+  if FBitmap <> nil then
+  begin
+    FBitmap.Free;
+    FBitmap := nil;
+  end;
+  // Clear the icon preview bitmap so we don't show a stale tile.
+  // Picture.Assign(nil) is equivalent to TPicture.Clear in LCL.
+  iconImage.Picture.Assign(nil);
+  iconImage.Invalidate;
+
+  // --- Animations ---
+  // Clear all animations and create one default empty animation so the
+  // rest of the editor (frame controls, layer tree, etc.) has something
+  // to work with. The default animation has no AnimFilePath yet — the
+  // user picks one via Save Anim, or OK auto-assigns one via
+  // EnsureAnimFilePath using FAnimBasePath.
+  ClearAnimations(FAnimations);
+  New(anim);
+  anim^.Name := 'default';
+  anim^.RowIndex := 0;
+  anim^.AnimFilePath := '';
+  anim^.FrameCount := 1;
+  anim^.SpeedMs := 100;
+  anim^.Transform := ttNone;
+  anim^.Preset := '';
+  anim^.FrameW := 32;
+  anim^.FrameH := 32;
+  SetLength(anim^.Frames, 1);
+  anim^.Frames[0].Ordinal := 0;
+  SetLength(anim^.Frames[0].Layers, 0);
+  FAnimations.Add(anim);
+
+  RefreshAnimationList;
+  if FAnimations.Count > 0 then
+    SelectAnimation(0);
+
+  // Reset the .action file path — it'll be set by the Save As dialog
+  // in btnNewdActClick. Until then, OK won't try to save a .action file.
+  FActionFilePath := '';
+
+  pbPreview.Invalidate;
 end;
 
 end.

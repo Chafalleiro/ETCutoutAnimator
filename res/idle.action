@@ -1,0 +1,15 @@
+{
+  "actionName" : "idle",
+  "icon" : {
+    "tilesetFile" : "objects/hatchet.tileset",
+    "imageFile" : "objects/hatchet.png",
+    "x" : 9,
+    "y" : 12,
+    "width" : 23,
+    "height" : 20,
+    "name" : "rust_iron"
+  },
+  "animations" : [
+    "rust_iron_Idle_down.anim"
+  ]
+}

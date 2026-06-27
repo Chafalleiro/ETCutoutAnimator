@@ -25,7 +25,7 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
       Left = 72
       Height = 23
       Top = 0
-      Width = 609
+      Width = 548
       Anchors = [akTop, akLeft, akRight]
       Constraints.MinWidth = 100
       TabOrder = 0
@@ -167,6 +167,24 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
       Top = 64
       Width = 68
       Caption = 'lblIconName'
+    end
+    object btnNewdAct: TButton
+      Left = 720
+      Height = 25
+      Top = -2
+      Width = 75
+      Caption = 'New Action'
+      TabOrder = 10
+      OnClick = btnNewdActClick
+    end
+    object btnAct: TButton
+      Left = 632
+      Height = 25
+      Top = -2
+      Width = 75
+      Caption = 'LoadAction'
+      TabOrder = 11
+      OnClick = btnActClick
     end
   end
   object gbAnimProps: TGroupBox
@@ -374,7 +392,7 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
           TabIndex = 1
           TabOrder = 0
           object TabSheet1: TTabSheet
-            Caption = 'TabSheet1'
+            Caption = 'Frames'
             ClientHeight = 1805
             ClientWidth = 369
             object btnApplyFrame: TButton
@@ -382,7 +400,7 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
               Height = 25
               Top = 8
               Width = 75
-              Caption = 'btnApplyFrame'
+              Caption = 'Apply Frame'
               TabOrder = 0
               OnClick = btnApplyFrameClick
             end
@@ -401,7 +419,7 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
               Height = 25
               Top = 8
               Width = 75
-              Caption = 'btnAddFrame'
+              Caption = 'Add Frame'
               TabOrder = 2
               OnClick = btnAddFrameClick
             end
@@ -410,7 +428,7 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
               Height = 25
               Top = 8
               Width = 75
-              Caption = 'btnDelFrame'
+              Caption = 'Del Frame'
               TabOrder = 3
               OnClick = btnDelFrameClick
             end
@@ -419,13 +437,13 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
               Height = 25
               Top = 8
               Width = 75
-              Caption = 'btnDupFrame'
+              Caption = 'Dup Frame'
               TabOrder = 4
               OnClick = btnDupFrameClick
             end
           end
           object TabSheet2: TTabSheet
-            Caption = 'TabSheet2'
+            Caption = 'Layers'
             ClientHeight = 1805
             ClientWidth = 369
             object Panel2: TPanel
@@ -450,7 +468,6 @@ object CutoutAnimatorForm: TCutoutAnimatorForm
                 Header.AutoSizeIndex = 0
                 Header.Columns = <>
                 Header.MainColumn = -1
-                ScrollBarOptions.ScrollBars = ssAutoBoth
                 TabOrder = 0
                 TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
                 OnChecking = VirtualStringTree1Checking

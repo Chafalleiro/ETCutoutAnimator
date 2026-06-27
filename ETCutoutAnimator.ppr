@@ -41,7 +41,7 @@ uses
   uCutoutRenderer,    // RenderFrame / RenderSpritesheet / SaveSpritesheet
   uSpritesheetDialog, // TSpritesheetDialog — preview/play exported sheets
   uSpritePicker,      // TSpritePickerForm — tile picker (dependency)
-  uDebugLog;          // TDebugLogger — logging (dependency)
+  uDebugLog, uPathUtils;          // TDebugLogger — logging (dependency)
 
 {$R *.res}
 
@@ -67,6 +67,7 @@ begin
   TDebugLogger.SetLogLevel(dllError);
   {$ENDIF}
   TDebugLogger.Debug('ETcutoutAnimator starting', {$I %CURRENTROUTINE%}, {$I %FILE%}, {$I %lineNum%});
+  Application.Scaled:=True;
 
   Application.Initialize;
   Application.CreateForm(TCutoutAnimatorForm, frm);

@@ -1,5 +1,5 @@
 {
-  "image" : "C:\\vhost\\Repositorios\\ETCutoutAnimator_working\\res\\bodyparts\\eyes.png",
+  "image" : "eyes.png",
   "tiles" : [
     {
       "name" : "eyes_open",

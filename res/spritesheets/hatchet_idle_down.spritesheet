@@ -1,16 +1,16 @@
 {
   "cellW" : 64,
   "cellH" : 64,
-  "columns" : 2,
+  "columns" : 14,
   "rows" : 1,
-  "sheetW" : 128,
+  "sheetW" : 896,
   "sheetH" : 64,
-  "image" : "masked_hatchet_spritesheet.png",
+  "image" : "hatchet_idle_down.png",
   "animations" : [
     {
-      "name" : "Hatchet",
+      "name" : "rust_iron_Idle_down",
       "row" : 0,
-      "frameCount" : 2,
+      "frameCount" : 14,
       "frameW" : 64,
       "frameH" : 64,
       "speedMs" : 100,

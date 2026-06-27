@@ -1,0 +1,19 @@
+{
+  "image" : "hatchet.png",
+  "tiles" : [
+    {
+      "name" : "rust_iron",
+      "x" : 9,
+      "y" : 12,
+      "width" : 23,
+      "height" : 20
+    },
+    {
+      "name" : "Stone",
+      "x" : 41,
+      "y" : 12,
+      "width" : 23,
+      "height" : 20
+    }
+  ]
+}
